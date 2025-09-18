@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منصّة محاكاة المدرّبين — ملف واحد</title>
+<meta name="theme-color" content="#0ea5e9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1220;--card:#121a2b;--panel:#0f1728;--border:#1e2a44;--text:#e6eaf2;--muted:#9aa7bd;
+  --brand:#0ea5e9;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Cairo",system-ui; background:linear-gradient(180deg,#0a0f1a,#0b1220 60%); color:var(--text)}
+a{color:var(--brand);text-decoration:none}
+.container{max-width:1100px;margin:auto;padding:0 16px}
+.header{position:sticky;top:0;z-index:5;background:rgba(18,26,43,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav{height:64px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.badge{border:1px solid var(--border);border-radius:999px;padding:2px 10px;color:var(--muted);font-size:12px}
+.btn{background:var(--brand);color:#001017;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--bad);color:#fff}
+.grid{display:grid;gap:12px}
+.grid-2{grid-template-columns:320px 1fr}
+@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+.small{color:var(--muted);font-size:.95rem}
+.hero{padding:20px 0;border-bottom:1px solid var(--border)}
+.hero h1{margin:0 0 6px;font-size:26px}
+.hero p{margin:0;color:var(--muted)}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+label{display:flex;gap:8px;align-items:center}
+select,textarea,input[type="text"],input[type="email"],input[type="password"]{
+  width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px;font-family:inherit
+}
+.stage{position:relative;height:420px;border:1px solid var(--border);border-radius:16px;background:radial-gradient(1000px 380px at 50% 110%,#0b1220 40%,#0f1728 100%);overflow:hidden}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:8px}
+.kpi h4{margin:0 0 6px;font-size:12px;color:var(--muted)}
+.kpi .num{font-weight:700}
+.avatar{position:absolute;bottom:0;width:210px;height:300px;background:#152039;border:1px solid var(--border);border-radius:16px 16px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transition:filter .2s}
+.avatar .face{width:96px;height:96px;background:#f0c7a8;border-radius:60% 60% 50% 50%}
+.avatar .eyes{display:flex;gap:16px;transform:translateY(-28px)}
+.eye{width:10px;height:10px;background:#111;border-radius:50%}
+.avatar .mouth{width:42px;height:12px;background:#991b1b;border-radius:0 0 24px 24px;transform:translateY(-22px);transition:height .08s}
+.avatar .body{width:150px;height:120px;background:#1f2a44;border-radius:12px 12px 0 0;margin-top:-6px}
+.avatar .name{position:absolute;top:8px;right:8px;background:#0b1220;border:1px solid var(--border);font-size:12px;padding:2px 6px;border-radius:999px;color:var(--muted)}
+.avatar .bubble{position:absolute;bottom:310px;right:10px;max-width:240px;background:#0b1220;border:1px solid var(--border);color:var(--text);padding:8px;border-radius:10px;display:none}
+.avatar.show .bubble{display:block}
+.avatar.talking{filter:drop-shadow(0 0 12px rgba(34,197,94,.4))}
+.avatar.talking .mouth{height:28px}
+.avatar:nth-child(1){left:12px}
+.avatar:nth-child(2){left:calc(12px + 220px)}
+.avatar:nth-child(3){left:calc(12px + 220px*2)}
+.avatar:nth-child(4){left:calc(12px + 220px*3)}
+.chat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px;height:170px}
+.chat-log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.msg{padding:6px 8px;border-radius:12px;max-width:85%}
+.msg.me{background:var(--brand);color:#001017;align-self:flex-start}
+.msg.ai{background:#101a30;border:1px solid var(--border);align-self:flex-end}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0f1728;border:1px solid var(--border);border-radius:12px;padding:8px 10px;display:none}
+.toast.show{display:block}
+footer{color:var(--muted);text-align:center;padding:16px}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="container nav">
+    <div class="brand">🎙️ محاكاة المدرّب <span class="badge">ملف واحد</span></div>
+    <div class="controls">
+      <button class="btn-outline" id="downloadReport" disabled>تنزيل التقرير</button>
+      <button class="btn" id="startSim">ابدأ</button>
+      <button class="btn-danger" id="stopSim" disabled>إنهاء</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>جلسة محاكاة قصيرة بلهجة سعودية (صوت/نص + كاميرا اختيارية)</h1>
+    <p>يتم قياس السرعة والنبرة والصمت والمقاطعات واتصالك البصري. بعد الجلسة، ينولد تقرير PDF.</p>
+  </div>
+</section>
+
+<div class="container grid grid-2" style="padding:12px 0 18px">
+  <!-- إعدادات -->
+  <aside class="card">
+    <h3>الإعدادات</h3>
+    <label><input id="micOn" type="checkbox" checked> تفعيل المايك</label>
+    <label><input id="camOn" type="checkbox"> تفعيل الكاميرا</label>
+    <label><input id="liveHints" type="checkbox" checked> مؤشرات لحظية</label>
+    <div style="height:8px"></div>
+    <label>السيناريو</label>
+    <select id="scenarioSel"></select>
+    <div style="height:8px"></div>
+    <label>ملاحظة للطلاب (اختياري)</label>
+    <input id="note" type="text" placeholder="مثال: اليوم نغطي الأساسيات + مثال عملي">
+    <div style="height:8px"></div>
+    <h3>دخول</h3>
+    <input id="email" type="email" placeholder="البريد (اختياري)">
+    <input id="password" type="password" placeholder="كلمة المرور (اختياري)">
+    <button class="btn-outline" id="fakeLogin">دخول ضيف</button>
+    <p class="small">للتجريب فقط — لا تحتاج إعداد Firebase الآن.</p>
+  </aside>
+
+  <!-- المسرح -->
+  <main class="card">
+    <div class="kpis">
+      <div class="kpi"><h4>الوقت</h4><div class="num" id="clock">00:00</div></div>
+      <div class="kpi"><h4>السرعة (WPM)</h4><div class="num" id="wpm">0</div></div>
+      <div class="kpi"><h4>الصوت (RMS)</h4><div class="num" id="rms">0</div></div>
+      <div class="kpi"><h4>الطبقة (Hz)</h4><div class="num" id="pitch">—</div></div>
+      <div class="kpi"><h4>الصمت %</h4><div class="num" id="silence">—</div></div>
+      <div class="kpi"><h4>المقاطعات</h4><div class="num" id="intr">0</div></div>
+      <div class="kpi"><h4>اتصال بصري</h4><div class="num" id="eye">—</div></div>
+      <div class="kpi"><h4>إيماءات/دقيقة</h4><div class="num" id="gest">—</div></div>
+    </div>
+
+    <div class="stage" id="stage" aria-live="polite"></div>
+
+    <div class="grid" style="grid-template-columns: 260px 1fr; align-items: start; margin-top:10px">
+      <video id="camView" autoplay playsinline muted style="width:260px;height:180px;border-radius:12px;border:1px solid var(--border);display:none"></video>
+      <div class="chat">
+        <div class="chat-log" id="chatLog"></div>
+        <div style="display:flex;gap:8px">
+          <input id="chatInput" type="text" placeholder="اكتب ردّك هنا… ثم Enter">
+          <button class="btn" id="sendChat">إرسال</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<section class="container">
+  <div class="card">
+    <h3>تقرير الأداء</h3>
+    <div class="grid" style="grid-template-columns: repeat(3,1fr)">
+      <div><div class="small">متوسط WPM</div><div id="repWpm" style="font-weight:700;font-size:20px">—</div></div>
+      <div><div class="small">المقاطعات</div><div id="repIntr" style="font-weight:700;font-size:20px">—</div></div>
+      <div><div class="small">اتصال بصري</div><div id="repEye" style="font-weight:700;font-size:20px">—</div></div>
+    </div>
+    <div style="height:8px"></div>
+    <h4>نقاط القوة</h4><ul id="repStrengths"></ul>
+    <h4>نقاط التحسين</h4><ul id="repImprovements"></ul>
+    <h4>توصيات موجّهة</h4><ul id="repTips"></ul>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<!-- jsPDF لتوليد PDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+/* ===========================
+   بيانات السيناريوهات
+   =========================== */
+const SCENARIOS = {
+  "محاضرة نظرية — أساسيات": {
+    durationMin: 12,
+    students: [
+      {id:"s1", role:"مشاغب", name:"سلمان", openers:["ليه نحتاج ذا كله؟","طيب عطنا مثال حياتي سريع؟"]},
+      {id:"s2", role:"فضولي", name:"ليان", openers:["ممكن تبسّط المصطلح؟","وش الفرق بين المتوسط والوسيط؟"]},
+      {id:"s3", role:"خجول", name:"فهد", openers:["ممكن أكتب بالشات؟","ماني متأكد بس أظن…"]},
+      {id:"s4", role:"منشغل", name:"نورة", openers:["آسفة كنت بالجوال.. وين وصلنا؟","في نقاط مهمّة أدونها؟"]}
+    ]
+  },
+  "نشاط عملي — مختبر": {
+    durationMin: 10,
+    students: [
+      {id:"g1", role:"قائد", name:"تركي", openers:["نقسم المهام؟","أقترح نحدد هدف واضح للـ10 دقايق الجاية"]},
+      {id:"g2", role:"متحفّظ", name:"شهد", openers:["نجرب طريقة ثانية؟","أخاف الوقت ما يكفي"]},
+      {id:"g3", role:"مقاطع", name:"يزيد", openers:["لحظة تصحيح بسيط","خلّني أوضح نقطة"]}
+    ]
+  }
+};
+
+/* ========== DOM ========== */
+const stage = document.getElementById('stage');
+const scenarioSel = document.getElementById('scenarioSel');
+const micOn = document.getElementById('micOn');
+const camOn = document.getElementById('camOn');
+const liveHints = document.getElementById('liveHints');
+const startBtn = document.getElementById('startSim');
+const stopBtn = document.getElementById('stopSim');
+const downloadBtn = document.getElementById('downloadReport');
+const clockEl = document.getElementById('clock');
+const wpmEl = document.getElementById('wpm');
+const rmsEl = document.getElementById('rms');
+const pitchEl = document.getElementById('pitch');
+const silenceEl = document.getElementById('silence');
+const intrEl = document.getElementById('intr');
+const eyeEl = document.getElementById('eye');
+const gestEl = document.getElementById('gest');
+const camView = document.getElementById('camView');
+const chatLog = document.getElementById('chatLog');
+const chatInput = document.getElementById('chatInput');
+const sendChat = document.getElementById('sendChat');
+const toast = document.getElementById('toast');
+const repWpm = document.getElementById('repWpm');
+const repIntr = document.getElementById('repIntr');
+const repEye = document.getElementById('repEye');
+const repStrengths = document.getElementById('repStrengths');
+const repImprovements = document.getElementById('repImprovements');
+const repTips = document.getElementById('repTips');
+
+/* ========== حالة الجلسة ========== */
+let currentScenario = null;
+let running = false, startTime = 0, timerInterval = null;
+let wordsSpoken = 0, interruptions = 0, lastStudentEnd = Date.now();
+let recognizer = null;
+let micStream = null, camStream = null, audioCtx = null, analyser = null, sourceNode = null;
+let pitchHz = null, rmsLevel = 0, silenceRatio = 0, silenceSamples = 0, totalSamples = 0;
+let eyeContactArr = [], gesturesCount = 0, lastGestureMag = 0;
+let faceDetector = ('FaceDetector' in window) ? new FaceDetector({fastMode:true}) : null;
+
+/* ========== أدوات ========== */
+const showToast = (m)=>{ toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1800); };
+const rand = (a)=>a[Math.floor(Math.random()*a.length)];
+const fmtTime = (ms)=>{ const s=Math.floor(ms/1000); const m=String(Math.floor(s/60)).padStart(2,'0'); const r=String(s%60).padStart(2,'0'); return m+':'+r; };
+
+/* ========== بناء المسرح ========== */
+function loadScenarios(){
+  Object.keys(SCENARIOS).forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; scenarioSel.appendChild(o); });
+  scenarioSel.value=Object.keys(SCENARIOS)[0];
+  setScenario(scenarioSel.value);
+}
+function setScenario(name){
+  currentScenario = JSON.parse(JSON.stringify(SCENARIOS[name]));
+  stage.innerHTML='';
+  (currentScenario.students||[]).slice(0,4).forEach((s,i)=>{
+    const v=document.createElement('div'); v.className='avatar'; v.dataset.sid=s.id;
+    v.innerHTML = `
+      <div class="name">${s.name} — ${s.role}</div>
+      <div class="bubble" id="bubble-${s.id}"></div>
+      <div class="face"></div>
+      <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+      <div class="mouth"></div>
+      <div class="body"></div>
+    `;
+    stage.appendChild(v);
+  });
+}
+scenarioSel.onchange = ()=>setScenario(scenarioSel.value);
+
+/* ========== دردشة ========== */
+function logChat(sender, text, who='me'){
+  const div=document.createElement('div');
+  div.className = 'msg '+(who==='me'?'me':'ai');
+  div.textContent = sender?`${sender}: ${text}`:text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+sendChat.onclick = ()=>sendChatMsg();
+chatInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') sendChatMsg(); });
+function sendChatMsg(){
+  const t=chatInput.value.trim(); if(!t) return;
+  logChat('المدرّب', t, 'me');
+  wordsSpoken += t.split(/\s+/).length;
+  wpmEl.textContent = Math.round(wordsSpoken / Math.max(0.1,(Date.now()-startTime)/60000));
+  scheduleStudentResponse(t);
+  chatInput.value='';
+}
+
+/* ========== صوت: التعرف + تحليل ========= */
+function setupRecognition(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR || !micOn.checked){ recognizer=null; return; }
+  recognizer = new SR();
+  recognizer.lang = 'ar-SA';
+  recognizer.continuous = true;
+  recognizer.interimResults = true;
+  recognizer.onresult = (e)=>{
+    let finalText='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r = e.results[i];
+      if(r.isFinal) finalText += r[0].transcript + ' ';
+    }
+    if(finalText.trim()){
+      logChat('المدرّب', finalText.trim(), 'me');
+      const wc = finalText.trim().split(/\s+/).length;
+      wordsSpoken += wc;
+      const wpm = Math.round(wordsSpoken / Math.max(0.1,(Date.now()-startTime)/60000));
+      wpmEl.textContent = wpm;
+      if(liveHints.checked){
+        if(wpm>160) showToast('⚠️ سرعـتك عالية — خفّف الوتيرة.');
+        if(wpm<90) showToast('🔈 حاول ترفع الوتيرة قليلًا.');
+      }
+      maybeInterrupt();
+      scheduleStudentResponse(finalText.trim());
+    }
+  };
+}
+async function setupMicAnalyser(){
+  if(!micOn.checked) return;
+  try{
+    micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    sourceNode = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 2048;
+    sourceNode.connect(analyser);
+    const buf = new Float32Array(analyser.fftSize);
+    const tick = ()=>{
+      if(!running) return;
+      analyser.getFloatTimeDomainData(buf);
+      // RMS
+      let sum=0; for(let i=0;i<buf.length;i++){ sum += buf[i]*buf[i]; }
+      const rms = Math.sqrt(sum/buf.length);
+      rmsLevel = Math.round(rms*1000)/10; // 0..~70
+      rmsEl.textContent = rmsLevel.toFixed(1);
+      // Silence (threshold)
+      const isSilent = rms < 0.02;
+      totalSamples++; if(isSilent) silenceSamples++;
+      silenceRatio = Math.round(100*silenceSamples/totalSamples);
+      silenceEl.textContent = silenceRatio+'%';
+      // Pitch via autocorrelation (بسيطة)
+      pitchHz = estimatePitch(buf, audioCtx.sampleRate);
+      pitchEl.textContent = pitchHz? Math.round(pitchHz) : '—';
+      if(liveHints.checked){
+        if(rmsLevel<8) showToast('🔊 ارفع الصوت قليلًا.');
+        if(rmsLevel>45) showToast('🔉 خفّض مستوى الصوت.');
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }catch(e){ console.warn(e); showToast('تعذر الوصول للمايك'); }
+}
+function estimatePitch(buf, sr){
+  // Autocorrelation
+  let SIZE = buf.length;
+  let bestOffset=-1, bestCorr=0, rms=0;
+  for(let i=0;i<SIZE;i++) rms += buf[i]*buf[i];
+  rms = Math.sqrt(rms/SIZE);
+  if(rms<0.01) return null;
+  let lastCorr=1;
+  for(let offset=32; offset<512; offset++){
+    let corr=0;
+    for(let i=0; i<SIZE-offset; i++) corr += buf[i]*buf[i+offset];
+    corr = corr/(SIZE-offset);
+    if(corr>0.9 && corr>lastCorr){ bestCorr=corr; bestOffset=offset; }
+    lastCorr=corr;
+  }
+  if(bestOffset>0) return sr/bestOffset;
+  return null;
+}
+
+/* ========== ردود الطلاب (قواعد بسيطة) ========== */
+function scheduleStudentResponse(txt){
+  const sList = currentScenario.students;
+  let target = rand(sList);
+  if(/[ليش|ليه|وش الفايدة]/.test(txt)) target = sList.find(s=>s.role.includes('مشاغب')) || target;
+  if(/وضح|ممكن|يعني|وش الفرق/.test(txt)) target = sList.find(s=>s.role.includes('فضولي')) || target;
+  const say = target.openers ? rand(target.openers) : "تمام؟ نكمل؟";
+  setTimeout(()=>studentSpeak(target, say), 700 + Math.random()*800);
+}
+function studentSpeak(stu, text){
+  lastStudentEnd = Date.now();
+  const av=[...stage.querySelectorAll('.avatar')].find(a=>a.dataset.sid===stu.id);
+  if(!av) return;
+  av.classList.add('talking','show');
+  av.querySelector('.bubble').textContent = text;
+  // صوت (إن توفر)
+  if('speechSynthesis' in window){
+    const u = new SpeechSynthesisUtterance(text); u.lang='ar-SA'; u.rate=1.02; speechSynthesis.speak(u);
+    u.onend=()=> av.classList.remove('talking');
+  }else{
+    setTimeout(()=>av.classList.remove('talking'), Math.min(2400, text.length*70));
+  }
+  logChat(`${stu.name} (${stu.role})`, text, 'ai');
+}
+function maybeInterrupt(){
+  // إذا ردّ الطالب خلال 1.6ث من كلام المدرّب نعدها مقاطعة
+  if(Date.now()-lastStudentEnd < 1600){
+    interruptions++; intrEl.textContent = interruptions;
+    if(liveHints.checked) showToast('⚠️ في مقاطعة: ثبّت القاعدة "نكمّل الفكرة ثم نرد".');
+  }
+}
+
+/* ========== كاميرا + تقدير بصري بسيط ========== */
+async function setupCam(){
+  if(!camOn.checked){ camView.style.display='none'; return; }
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
+    camView.srcObject = camStream; camView.style.display='block';
+    if(faceDetector){
+      const detect = async ()=>{
+        if(!running) return;
+        try{
+          const faces = await faceDetector.detect(camView);
+          if(faces.length>0){
+            const box = faces[0].boundingBox;
+            const vw = camView.videoWidth||320;
+            const cx = box.x + box.width/2;
+            const centered = (cx>vw*0.35 && cx<vw*0.65);
+            eyeContactArr.push(centered?1:0);
+            eyeEl.textContent = centered? 'جيد ✅' : 'ضعيف ⚠️';
+          }else{
+            eyeContactArr.push(0); eyeEl.textContent='غير متاح';
+          }
+        }catch(e){ eyeEl.textContent='—'; }
+        setTimeout(detect, 900);
+      };
+      detect();
+    }else{
+      eyeEl.textContent = 'FaceDetector غير مدعوم';
+    }
+    // تقدير "حركة/إيماءات" عبر التذبذب البسيط في luminance (تقريبي)
+    const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
+    let lastVal=0, moves=0, startT=Date.now();
+    const sample=()=>{
+      if(!running || !camView.videoWidth) return;
+      canvas.width=64; canvas.height=36;
+      ctx.drawImage(camView,0,0,64,36);
+      const d = ctx.getImageData(0,0,64,36).data;
+      let s=0; for(let i=0;i<d.length;i+=4){ s += (0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2]); }
+      const avg = s/(d.length/4);
+      const delta = Math.abs(avg-lastVal); lastVal=avg;
+      if(delta>3) moves++;
+      const mins = Math.max(0.001,(Date.now()-startT)/60000);
+      gestEl.textContent = Math.round(moves/mins);
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  }catch(e){ console.warn(e); showToast('تعذر الوصول للكاميرا'); }
+}
+
+/* ========== مؤقّت ========== */
+function startTimer(){
+  startTime = Date.now();
+  timerInterval = setInterval(()=>{
+    const elapsed = Date.now()-startTime;
+    clockEl.textContent = fmtTime(elapsed);
+    const target = (currentScenario?.durationMin||12)*60*1000;
+    if(elapsed>target && liveHints.checked) showToast('⌛ قاربنا الوقت المقترح — لخص النقاط.');
+  }, 250);
+}
+function stopTimer(){ clearInterval(timerInterval); timerInterval=null; }
+
+/* ========== بدء/إيقاف ========== */
+async function startSim(){
+  if(running) return;
+  running=true;
+  startBtn.disabled=true; stopBtn.disabled=false; downloadBtn.disabled=true;
+  // reset
+  wordsSpoken=0; interruptions=0; lastStudentEnd=Date.now();
+  wpmEl.textContent='0'; intrEl.textContent='0'; rmsEl.textContent='0'; pitchEl.textContent='—'; silenceEl.textContent='—'; eyeEl.textContent='—'; gestEl.textContent='—';
+  silenceSamples=0; totalSamples=0; eyeContactArr=[];
+  // stage openers
+  currentScenario.students.slice(0,4).forEach((s,i)=>setTimeout(()=>studentSpeak(s, rand(s.openers||["جاهزين؟"])), 600+i*700));
+  // audio/cam
+  setupRecognition(); if(recognizer){ try{recognizer.start();}catch(e){} }
+  await setupMicAnalyser(); await setupCam();
+  startTimer();
+}
+function stopSim(){
+  if(!running) return; running=false;
+  startBtn.disabled=false; stopBtn.disabled=true; downloadBtn.disabled=false;
+  stopTimer();
+  if(recognizer){ try{ recognizer.stop(); }catch(e){} }
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  generateReport();
+  showToast('تم إنهاء الجلسة وتوليد التقرير ✔️');
+}
+
+/* ========== تقرير PDF ========== */
+function generateReport(){
+  const mins = Math.max(0.01,(Date.now()-startTime)/60000);
+  const avgWpm = Math.round(wordsSpoken/mins);
+  const intr = interruptions;
+  const eye = eyeContactArr.length? Math.round(100*eyeContactArr.reduce((a,b)=>a+b,0)/eyeContactArr.length): null;
+
+  repWpm.textContent = isFinite(avgWpm)?avgWpm:0;
+  repIntr.textContent = intr;
+  repEye.textContent = (eye!==null?eye+'%':'—');
+
+  const strengths=[], improvements=[], tips=[];
+  if(avgWpm>=110 && avgWpm<=150) strengths.push('وتيرة مناسبة تسهّل المتابعة.');
+  if((eye??0)>60) strengths.push('اتصال بصري جيد يحافظ على الانتباه.');
+  if(intr<=2) strengths.push('تحكّم جيد بالمقاطعات.');
+  if(avgWpm<95) improvements.push('ارفع الوتيرة قليلًا وأدخل أمثلة قصيرة.');
+  if(avgWpm>165) improvements.push('خفّف السرعة وتوقّف لحظات للأسئلة.');
+  if((eye??0)<40) improvements.push('واجه الكاميرا أكثر وحافظ على التمركز.');
+  if(intr>2) improvements.push('ضع قواعد تفاعل واضحة قبل البدء.');
+
+  (currentScenario.students||[]).slice(0,4).forEach(s=>{
+    if(s.role.includes('مشاغب')) tips.push('حوّل المزاح لنقطة تعليمية ثم وجّه سؤالًا محددًا.');
+    else if(s.role.includes('فضولي')) tips.push('اتبع إطار (تعريف-مثال-تطبيق) وحدّد وقت أسئلة متقدمة في النهاية.');
+    else if(s.role.includes('خجول')) tips.push('أعطه وقت تفكير وخيارات مشاركة بالشات.');
+    else if(s.role.includes('منشغل')) tips.push('جزّئ الشرح مع أسئلة تحقق كل 3–4 دقائق.');
+  });
+
+  repStrengths.innerHTML = strengths.map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
+  repImprovements.innerHTML = improvements.map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
+  repTips.innerHTML = tips.map(x=>`<li>${x}</li>`).join('') || '<li>—</li>';
+
+  downloadBtn.onclick = ()=>downloadPDF({
+    scenario: scenarioSel.value,
+    duration: fmtTime(Date.now()-startTime),
+    wpm: avgWpm,
+    intr,
+    eye,
+    rms: rmsLevel,
+    pitch: pitchHz?Math.round(pitchHz):null,
+    silence: silenceRatio,
+    strengths, improvements, tips
+  });
+}
+function downloadPDF(data){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt',format:'a4'});
+  let y=50;
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text('تقرير محاكاة المدرّب', 50, y); y+=22;
+  doc.setFont('helvetica','normal'); doc.setFontSize(11);
+  doc.text(`السيناريو: ${data.scenario}`, 50, y); y+=14;
+  doc.text(`المدة: ${data.duration}`, 50, y); y+=20;
+
+  doc.setFont('helvetica','bold'); doc.text('المؤشرات:', 50, y); y+=14;
+  doc.setFont('helvetica','normal');
+  doc.text(`متوسط السرعة: ${data.wpm} wpm`, 62, y); y+=12;
+  doc.text(`المقاطعات: ${data.intr}`, 62, y); y+=12;
+  doc.text(`الاتصال البصري: ${data.eye??'—'}%`, 62, y); y+=12;
+  doc.text(`RMS (تقريبي): ${data.rms}`, 62, y); y+=12;
+  doc.text(`Pitch (Hz): ${data.pitch??'—'}`, 62, y); y+=12;
+  doc.text(`الصمت: ${data.silence}%`, 62, y); y+=18;
+
+  const addList=(title,arr)=>{
+    doc.setFont('helvetica','bold'); doc.text(title, 50, y); y+=14;
+    doc.setFont('helvetica','normal');
+    if(!arr.length){ doc.text('—', 62, y); y+=12; return; }
+    arr.forEach(t=>{ doc.text('• '+t, 62, y); y+=12; });
+    y+=8;
+  };
+  addList('نقاط القوة', data.strengths);
+  addList('نقاط التحسين', data.improvements);
+  addList('توصيات موجّهة', data.tips);
+
+  doc.save('trainer-simulation-report.pdf');
+}
+
+/* ========== أحداث ========== */
+document.getElementById('fakeLogin').onclick = ()=>showToast('دخول ضيف ✅');
+startBtn.onclick = startSim;
+stopBtn.onclick = stopSim;
+
+/* ========== دخول سريع ========== */
+function init(){
+  // قائمة السيناريوهات
+  loadScenarios();
+  // كام/مايك تحذير
+  if(location.protocol!=='https:' && location.hostname!=='localhost'){
+    showToast('يفضل فتح الصفحة عبر HTTPS لعمل المايك/الكاميرا.');
+  }
+}
+init();
+</script>
+
+<footer>
+  هذا ملف واحد (HTML+CSS+JS) — جاهز للرفع على GitHub Pages. بالتوفيق! ✅
+</footer>
+</body>
+</html>
